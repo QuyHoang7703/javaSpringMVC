@@ -14,7 +14,11 @@ import vn.hoidanit.laptopshop.service.UserService;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
 
 
 
@@ -41,8 +45,9 @@ public class UserController {
 
     @RequestMapping("/admin/user")
     public String getUserPage(Model model){
-        String test = this.userService.handleHello();
-        model.addAttribute("newUser", new User());
+        List<User> users = this.userService.getAllUsers();
+        model.addAttribute("users1", users);
+        System.out.println(">>check users: " + users);
         return "admin/user/table-user" ;
     }
 
@@ -57,8 +62,38 @@ public class UserController {
     public String createUserPage(Model model, @ModelAttribute("newUser") User hoidanit){
         System.out.println("run java: "+ hoidanit);
         this.userService.handleSaveUser(hoidanit);
-        return "hello";
+        return "redirect:/admin/user"; // redirect by url
     }
+
+    @RequestMapping("/admin/user/{id}")
+    public String getUserDetailPage(Model model, @PathVariable long id){
+        System.out.println("user id: " + id);
+        User user = userService.getUserById(id);
+        model.addAttribute("id", id);
+        model.addAttribute("user", user);
+        return "admin/user/show" ;
+    }
+
+    @RequestMapping("/admin/user/update/{id}")
+    public String updateUser(Model model, @PathVariable long id){
+        User currentUser = this.userService.getUserById(id);
+        model.addAttribute("newUser", currentUser);
+        return "admin/user/update";
+    }
+
+    @PostMapping("/admin/user/update")
+    public String postUpdateUser(Model model, @ModelAttribute("newUser") User user) {
+        User currentUser = this.userService.getUserById(user.getId());
+        System.out.println("Current user: " + user);
+        if(currentUser != null) {
+            currentUser.setPhone(user.getPhone());
+            currentUser.setFullName(user.getFullName());
+            currentUser.setAddress(user.getAddress());
+            this.userService.handleSaveUser(currentUser);
+        }
+        return "redirect:/admin/user";
+    }
+    
 }
 
 // @RestController
